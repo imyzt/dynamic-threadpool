@@ -17,3 +17,7 @@ spring:
       server-addr: http://localhost:6691
       namespace: prescription
       item-id: ${spring.application.name}
+
+# 日志配置文件地址
+logging:
+  config: classpath:logback.xml

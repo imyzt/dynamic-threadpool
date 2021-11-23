@@ -1,5 +1,6 @@
 package cn.hippo4j.example.config;
 
+import cn.hippo4j.example.decorator.ContextCopyingDecorator;
 import cn.hippo4j.starter.core.DynamicThreadPool;
 import cn.hippo4j.starter.core.DynamicThreadPoolExecutor;
 import cn.hippo4j.starter.toolkit.thread.ThreadPoolBuilder;
@@ -32,6 +33,7 @@ public class ThreadPoolConfig {
         ThreadPoolExecutor customExecutor = ThreadPoolBuilder.builder()
                 .dynamicPool()
                 .threadFactory(MESSAGE_CONSUME)
+                .taskDecorator(new ContextCopyingDecorator())
                 .build();
         return new DynamicThreadPoolWrapper(MESSAGE_CONSUME, customExecutor);
     }

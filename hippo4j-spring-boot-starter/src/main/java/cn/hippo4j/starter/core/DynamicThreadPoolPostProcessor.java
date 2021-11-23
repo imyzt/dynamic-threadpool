@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.task.TaskDecorator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -106,7 +107,8 @@ public final class DynamicThreadPoolPostProcessor implements BeanPostProcessor {
             if (result.isSuccess() && result.getData() != null && (ppi = JSON.toJavaObject((JSON) result.getData(), PoolParameterInfo.class)) != null) {
                 // 使用相关参数创建线程池
                 BlockingQueue workQueue = QueueTypeEnum.createBlockingQueue(ppi.getQueueType(), ppi.getCapacity());
-                poolExecutor = (DynamicThreadPoolExecutor) ThreadPoolBuilder.builder()
+                TaskDecorator taskDecorator = ((DynamicThreadPoolExecutor) dynamicThreadPoolWrap.getExecutor()).getTaskDecorator();
+                poolExecutor = ThreadPoolBuilder.builder()
                         .dynamicPool()
                         .workQueue(workQueue)
                         .threadFactory(tpId)
@@ -114,6 +116,7 @@ public final class DynamicThreadPoolPostProcessor implements BeanPostProcessor {
                         .keepAliveTime(ppi.getKeepAliveTime(), TimeUnit.SECONDS)
                         .rejected(RejectedTypeEnum.createPolicy(ppi.getRejectedType()))
                         .alarmConfig(ppi.getIsAlarm(), ppi.getCapacityAlarm(), ppi.getLivenessAlarm())
+                        .taskDecorator(taskDecorator)
                         .build();
 
                 dynamicThreadPoolWrap.setExecutor(poolExecutor);

@@ -5,6 +5,7 @@ import cn.hippo4j.starter.alarm.ThreadPoolAlarmManage;
 import cn.hippo4j.starter.event.EventExecutor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.springframework.core.task.TaskDecorator;
 
 import java.security.AccessControlContext;
 import java.security.AccessController;
@@ -55,6 +56,11 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
     private volatile ThreadPoolAlarm threadPoolAlarm;
     private volatile ThreadFactory threadFactory;
     private volatile RejectedExecutionHandler handler;
+
+    /**
+     * 线程任务装饰器
+     */
+    private TaskDecorator taskDecorator;
 
     private static final RejectedExecutionHandler DEFAULT_HANDLER = new ThreadPoolExecutor.AbortPolicy();
     private static final RuntimePermission SHUTDOWN_PERM = new RuntimePermission("modifyThread");
@@ -533,6 +539,11 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
 
     @Override
     public void execute(@NonNull Runnable command) {
+
+        if (taskDecorator != null) {
+            command = taskDecorator.decorate(command);
+        }
+
         int c = ctl.get();
         if (workerCountOf(c) < corePoolSize) {
             if (addWorker(command, true)) {
@@ -680,6 +691,14 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
     @Override
     public int getCorePoolSize() {
         return corePoolSize;
+    }
+
+    public TaskDecorator getTaskDecorator() {
+        return taskDecorator;
+    }
+
+    public void setTaskDecorator(TaskDecorator taskDecorator) {
+        this.taskDecorator = taskDecorator;
     }
 
     @Override

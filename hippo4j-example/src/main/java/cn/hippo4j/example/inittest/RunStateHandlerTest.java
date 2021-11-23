@@ -4,9 +4,12 @@ import cn.hippo4j.example.constant.GlobalTestConstant;
 import cn.hippo4j.starter.core.GlobalThreadPoolManage;
 import cn.hippo4j.starter.wrapper.DynamicThreadPoolWrapper;
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Random;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -20,7 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Component
 public class RunStateHandlerTest {
 
-    // @PostConstruct
+    @PostConstruct
     @SuppressWarnings("all")
     public void runStateHandlerTest() {
         log.info("Test thread pool runtime state interface, The rejection policy will be triggered after 30s...");
@@ -28,7 +31,10 @@ public class RunStateHandlerTest {
         new Thread(() -> {
             ThreadUtil.sleep(5000);
             for (int i = 0; i < Integer.MAX_VALUE; i++) {
-                DynamicThreadPoolWrapper poolWrapper = GlobalThreadPoolManage.getExecutorService(GlobalTestConstant.MESSAGE_PRODUCE);
+                MDC.put("mdcRecordId", RandomUtil.randomString(10));
+                log.info("MDC context test log");
+
+                DynamicThreadPoolWrapper poolWrapper = GlobalThreadPoolManage.getExecutorService(GlobalTestConstant.MESSAGE_CONSUME);
                 ThreadPoolExecutor pool = poolWrapper.getExecutor();
                 try {
                     pool.execute(() -> {
